@@ -93,17 +93,36 @@ export class LmChatOpenCodeGoAnthropic implements INodeType {
 							'Controls randomness: Lowering results in less random completions.',
 						type: 'number',
 					},
-					{
-						displayName: 'Top K',
-						name: 'topK',
-						default: 0,
-						description:
-							'Limits the model to consider only the K most likely next tokens at each step.',
-						type: 'number',
-						typeOptions: { maxValue: 32768, minValue: 0 },
+				{
+					displayName: 'Top K',
+					name: 'topK',
+					default: 0,
+					description:
+						'Limits the model to consider only the K most likely next tokens at each step.',
+					type: 'number',
+					typeOptions: { maxValue: 32768, minValue: 0 },
+				},
+				{
+					displayName: 'Thinking Mode',
+					name: 'extendedThinking',
+					default: false,
+					type: 'boolean',
+				},
+				{
+					displayName: 'Thinking Budget Tokens',
+					name: 'budgetTokens',
+					default: 1024,
+					description:
+						'Maximum number of tokens to use for extended thinking.',
+					type: 'number',
+					displayOptions: {
+						show: {
+							'/options.extendedThinking': [true],
+						},
 					},
-					{
-						displayName: 'Custom Headers',
+				},
+				{
+					displayName: 'Custom Headers',
 						name: 'customHeaders',
 						placeholder: 'Add Header',
 						type: 'fixedCollection',
@@ -147,12 +166,14 @@ export class LmChatOpenCodeGoAnthropic implements INodeType {
 		}
 
 		const options = this.getNodeParameter('options', itemIndex, {}) as {
+			budgetTokens?: number;
 			customHeaders?: {
 				header: Array<{
 					name: string;
 					value: string;
 				}>;
 			};
+			extendedThinking?: boolean;
 			maxTokens?: number;
 			temperature?: number;
 			topK?: number;
@@ -181,6 +202,12 @@ export class LmChatOpenCodeGoAnthropic implements INodeType {
 			maxTokens: options.maxTokens && options.maxTokens > 0 ? options.maxTokens : undefined,
 			topK: options.topK && options.topK > 0 ? options.topK : undefined,
 			clientOptions: defaultHeaders ? { defaultHeaders } : undefined,
+			thinking: options.extendedThinking
+				? {
+						type: 'enabled',
+						budget_tokens: options.budgetTokens ?? 1024,
+					}
+				: undefined,
 		});
 
 		return {
