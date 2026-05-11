@@ -4,7 +4,7 @@
   "description": "n8n community node for OpenCode Go AI provider",
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && node scripts/copy-assets.js",
     "dev": "tsc --watch",
     "test": "jest",
     "lint": "eslint src/"
