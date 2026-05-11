@@ -8,6 +8,8 @@ import {
 	type SupplyData,
 } from 'n8n-workflow';
 
+const BASE_URL = 'https://opencode.ai/zen/go/v1';
+
 export class LmChatOpenCodeGo implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'OpenCode Go Chat Model',
@@ -44,7 +46,7 @@ export class LmChatOpenCodeGo implements INodeType {
 		],
 		requestDefaults: {
 			ignoreHttpStatusErrors: true,
-			baseURL: 'https://opencode.ai/zen/go/v1',
+			baseURL: BASE_URL,
 		},
 		properties: [
 			{
@@ -223,6 +225,7 @@ export class LmChatOpenCodeGo implements INodeType {
 						displayName: 'Top K',
 						name: 'topK',
 						default: 0,
+						typeOptions: { maxValue: 32768, minValue: 0 },
 						description:
 							'Limits the model to consider only the K most likely next tokens at each step. Lower values make output more focused and deterministic.',
 						type: 'number',
@@ -297,6 +300,10 @@ export class LmChatOpenCodeGo implements INodeType {
 
 		const timeout = options.timeout;
 
+		if (!modelName) {
+			throw new Error('Model must be selected');
+		}
+
 		const modelKwargs: Record<string, unknown> = {};
 
 		if (options.topK !== undefined && options.topK > 0) {
@@ -318,6 +325,10 @@ export class LmChatOpenCodeGo implements INodeType {
 			modelKwargs.thinking = { type: 'disabled' };
 		}
 
+		if (options.responseFormat === 'json_object') {
+			modelKwargs.response_format = { type: 'json_object' };
+		}
+
 		let defaultHeaders: Headers | undefined;
 
 		const customHeaders = options.customHeaders?.header;
@@ -334,7 +345,7 @@ export class LmChatOpenCodeGo implements INodeType {
 		}
 
 		const configuration: ClientOptions = {
-			baseURL: 'https://opencode.ai/zen/go/v1',
+			baseURL: BASE_URL,
 			defaultHeaders,
 		};
 
